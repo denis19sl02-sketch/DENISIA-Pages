@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Denisia Pages</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;color:#00d4ff;font-family:'Courier New',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* HEADER */
+.hdr{background:#000;border-bottom:2px solid #00d4ff;padding:8px 14px;display:flex;align-items:center;gap:7px;flex-shrink:0;box-shadow:0 0 18px rgba(0,212,255,.2);}
+.logo{font-size:17px;font-weight:900;color:#00d4ff;text-shadow:0 0 15px #00d4ff;letter-spacing:2px;white-space:nowrap;}
+.logo span{color:#fff;}
+.sp{flex:1;}
+.btn{padding:6px 12px;border-radius:5px;font-size:11px;font-weight:700;font-family:'Courier New',monospace;cursor:pointer;border:2px solid #00d4ff;background:#000;color:#00d4ff;transition:all .18s;white-space:nowrap;}
+.btn:hover{background:#00d4ff;color:#000;box-shadow:0 0 14px #00d4ff;}
+.btn-run{border-color:#00ff88;color:#00ff88;}
+.btn-run:hover{background:#00ff88;color:#000;}
+.btn-clr{border-color:#ff3333;color:#ff3333;}
+.btn-clr:hover{background:#ff3333;color:#fff;}
+.btn-dl{border-color:#888;color:#888;}
+.btn-dl:hover{background:#888;color:#000;}
+.btn-apk{border-color:#ff6600;color:#ff6600;font-size:12px;padding:6px 14px;animation:ag 2.5s ease-in-out infinite;}
+@keyframes ag{0%,100%{box-shadow:0 0 6px rgba(255,102,0,.2);}50%{box-shadow:0 0 18px rgba(255,102,0,.7);}}
+.btn-apk:hover{background:#ff6600;color:#fff;animation:none;}
+
+/* TABS */
+.tabs{display:flex;background:#000;border-bottom:2px solid #00d4ff;padding:0 14px;flex-shrink:0;}
+.tab{padding:6px 18px;font-size:12px;font-weight:700;font-family:'Courier New',monospace;cursor:pointer;border:none;border-bottom:3px solid transparent;background:transparent;color:#005577;transition:all .18s;margin-bottom:-2px;}
+.tab.active{color:#00d4ff;border-bottom-color:#00d4ff;text-shadow:0 0 8px #00d4ff;}
+.tab:hover{color:#00aadd;}
+
+/* MAIN */
+.main{flex:1;display:flex;overflow:hidden;}
+.ed-side{width:50%;display:flex;flex-direction:column;border-right:2px solid #00d4ff;min-width:60px;}
+.slbl{background:#000;border-bottom:1px solid #003344;padding:4px 12px;font-size:9px;color:#005577;letter-spacing:2px;flex-shrink:0;}
+.ed-box{flex:1;display:flex;overflow:hidden;}
+.lnums{background:#030303;border-right:1px solid #001a22;padding:12px 6px;font-size:12px;line-height:1.6;color:#003344;text-align:right;min-width:40px;overflow:hidden;user-select:none;flex-shrink:0;}
+textarea{flex:1;background:#000;color:#00d4ff;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;padding:12px;border:none;outline:none;resize:none;caret-color:#00ff88;overflow:auto;white-space:pre;tab-size:2;}
+textarea::selection{background:rgba(0,212,255,.2);}
+.resizer{width:5px;background:#001a22;cursor:col-resize;flex-shrink:0;transition:background .18s;}
+.resizer:hover{background:#00d4ff;}
+.prev-side{flex:1;display:flex;flex-direction:column;min-width:60px;}
+.prev-bar{background:#000;border-bottom:1px solid #003344;padding:4px 8px;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.ubox{flex:1;background:#030808;border:1px solid #003344;border-radius:20px;padding:3px 10px;font-size:10px;color:#005577;display:flex;align-items:center;gap:5px;overflow:hidden;transition:all .3s;}
+.ubox.live{border-color:#00d4ff;color:#00d4ff;}
+.ldot{width:6px;height:6px;border-radius:50%;background:#222;flex-shrink:0;}
+.ubox.live .ldot{background:#00ff88;box-shadow:0 0 5px #00ff88;animation:blink 2s infinite;}
+@keyframes blink{50%{opacity:.4;}}
+.utxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ibtn{background:none;border:1px solid #003344;border-radius:4px;color:#005577;cursor:pointer;padding:3px 6px;font-size:12px;transition:all .14s;}
+.ibtn:hover{color:#00d4ff;border-color:#00d4ff;}
+iframe#pf{flex:1;border:none;width:100%;background:#fff;display:none;}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.eico{font-size:44px;opacity:.1;}
+.etxt{font-size:12px;color:#003344;text-align:center;line-height:2;}
+.etxt b{color:#00d4ff;}
+.bottom{background:#000;border-top:1px solid #001a22;padding:3px 14px;display:flex;align-items:center;gap:12px;font-size:10px;color:#003344;flex-shrink:0;}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s;}
+.ov.open{opacity:1;pointer-events:all;}
+
+/* APK MODAL */
+.apkm{background:#060200;border:2px solid #ff6600;border-radius:14px;padding:24px;width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 0 50px rgba(255,102,0,.4);transform:scale(.95);transition:transform .2s;}
+.ov.open .apkm{transform:scale(1);}
+.apkt{font-size:19px;font-weight:900;color:#ff6600;text-shadow:0 0 15px #ff6600;letter-spacing:2px;margin-bottom:2px;}
+.apks{color:#553300;font-size:10px;letter-spacing:1px;margin-bottom:18px;}
+
+/* FORM FIELDS */
+.flbl{font-size:10px;color:#884400;letter-spacing:1px;margin-bottom:5px;display:block;}
+.finp{width:100%;background:#0a0300;border:1px solid #552200;border-radius:6px;padding:8px 11px;font-family:'Courier New',monospace;font-size:13px;color:#ff8844;outline:none;transition:border-color .18s;margin-bottom:14px;}
+.finp:focus{border-color:#ff6600;}
+
+/* ICON AREA */
+.icon-wrap{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.icon-box{width:68px;height:68px;border-radius:14px;border:2px solid #552200;background:#0a0300;display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;flex-shrink:0;cursor:pointer;transition:border-color .18s;}
+.icon-box:hover{border-color:#ff6600;}
+.icon-box img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
+.icon-side{display:flex;flex-direction:column;gap:6px;flex:1;}
+.ipbtn{padding:7px 10px;border-radius:5px;font-size:11px;font-weight:700;font-family:'Courier New',monospace;cursor:pointer;border:1px solid #552200;background:#0a0300;color:#ff8844;transition:all .15s;}
+.ipbtn:hover{border-color:#ff6600;background:#140800;}
+
+/* EMOJI GRID */
+.egrid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;background:#080200;border:1px solid #331100;border-radius:8px;padding:7px;margin-bottom:12px;}
+.ebtn{background:none;border:1px solid transparent;border-radius:4px;font-size:19px;cursor:pointer;padding:3px;transition:all .13s;line-height:1;}
+.ebtn:hover{background:#1a0800;border-color:#ff6600;}
+.ebtn.sel{background:#260e00;border-color:#ff6600;}
+
+/* PROGRESS SECTION */
+.prog-area{background:#080200;border:1px solid #331100;border-radius:8px;padding:14px;margin-bottom:14px;display:none;}
+.prog-area.show{display:block;}
+.prog-title{font-size:11px;color:#ff8844;margin-bottom:10px;letter-spacing:1px;}
+.prog-steps{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.pstep{display:flex;align-items:center;gap:8px;font-size:11px;color:#553300;}
+.pstep.done{color:#ff8844;}
+.pstep.active{color:#ff6600;animation:pulse 1s ease-in-out infinite;}
+.pstep.ok{color:#00ff88;}
+.pstep.fail{color:#ff3333;}
+@keyframes pulse{50%{opacity:.5;}}
+.pico{font-size:14px;flex-shrink:0;}
+.pbar-wrap{height:4px;background:#1a0800;border-radius:2px;overflow:hidden;}
+.pbar{height:100%;background:linear-gradient(90deg,#ff6600,#ff3300);border-radius:2px;width:0%;transition:width .5s;}
+
+/* BIG BTN */
+.gobtn{width:100%;padding:14px;background:linear-gradient(135deg,#ff6600,#ff2200);border:none;border-radius:9px;color:#fff;font-family:'Courier New',monospace;font-size:14px;font-weight:900;letter-spacing:2px;cursor:pointer;box-shadow:0 0 22px rgba(255,102,0,.45);transition:all .2s;margin-bottom:8px;}
+.gobtn:hover{box-shadow:0 0 40px rgba(255,102,0,.8);transform:translateY(-1px);}
+.gobtn:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none;}
+.cbtn{width:100%;padding:8px;background:none;border:1px solid #331100;border-radius:5px;color:#553300;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;transition:all .14s;}
+.cbtn:hover{color:#ff6600;border-color:#ff6600;}
+
+/* RESULT BOX */
+.result-box{background:#010a00;border:2px solid #00ff88;border-radius:9px;padding:16px;margin-bottom:12px;text-align:center;display:none;}
+.result-box.show{display:block;}
+.rb-title{color:#00ff88;font-size:15px;font-weight:900;letter-spacing:2px;margin-bottom:8px;text-shadow:0 0 12px #00ff88;}
+.rb-sub{color:#006633;font-size:11px;margin-bottom:14px;line-height:1.6;}
+.dl-apk-btn{display:inline-block;padding:12px 28px;background:#00ff88;color:#000;font-family:'Courier New',monospace;font-size:14px;font-weight:900;border-radius:7px;text-decoration:none;box-shadow:0 0 20px rgba(0,255,136,.5);transition:all .2s;cursor:pointer;border:none;}
+.dl-apk-btn:hover{box-shadow:0 0 35px rgba(0,255,136,.9);transform:translateY(-2px);}
+
+/* DL MODAL */
+.dlm{background:#000;border:2px solid #00d4ff;border-radius:12px;padding:22px;width:360px;box-shadow:0 0 35px rgba(0,212,255,.2);transform:scale(.95);transition:transform .2s;}
+.ov.open .dlm{transform:scale(1);}
+.dmt{color:#00d4ff;font-size:16px;letter-spacing:2px;margin-bottom:14px;}
+.dr{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #003344;border-radius:7px;cursor:pointer;margin-bottom:7px;background:#050a0d;color:#00d4ff;font-family:'Courier New',monospace;transition:all .14s;text-align:left;}
+.dr:hover{border-color:#00d4ff;background:#001a22;}
+.dem{font-size:19px;flex-shrink:0;}
+.dt2{font-size:12px;font-weight:700;display:block;}
+.ds2{font-size:10px;color:#005577;display:block;}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;right:14px;background:#000;padding:8px 16px;border-radius:6px;font-size:12px;font-family:'Courier New',monospace;transform:translateY(14px);opacity:0;transition:all .2s;z-index:9999;pointer-events:none;border:1px solid #00ff88;color:#00ff88;box-shadow:0 0 14px rgba(0,255,136,.3);}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.err{border-color:#ff4400;color:#ff4400;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:#000;}
+::-webkit-scrollbar-thumb{background:#003344;border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:#00d4ff;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">DENISIA<span>PAGES</span></div>
+  <div class="sp"></div>
+  <button class="btn btn-clr" onclick="clearCode()">🗑 ОЧИСТИТЬ</button>
+  <button class="btn btn-run" onclick="runCode()">▶ ЗАПУСТИТЬ</button>
+  <button class="btn btn-dl" onclick="openDL()">⬇ СКАЧАТЬ</button>
+  <button class="btn btn-apk" onclick="openAPK()">📱 СОБРАТЬ APK</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="t-html" onclick="switchTab('html')">HTML</button>
+  <button class="tab" id="t-css" onclick="switchTab('css')">CSS</button>
+  <button class="tab" id="t-js" onclick="switchTab('js')">JS</button>
+</div>
+
+<div class="main">
+  <div class="ed-side" id="edSide">
+    <div class="slbl">[ КОД РЕДАКТОР ]</div>
+    <div class="ed-box">
+      <div class="lnums" id="lnums">1</div>
+      <textarea id="ed" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+    </div>
+  </div>
+  <div class="resizer" id="resizer"></div>
+  <div class="prev-side">
+    <div class="prev-bar">
+      <div class="ubox" id="ubox"><div class="ldot"></div><span class="utxt" id="utxt">denisia.pages — нажми ЗАПУСТИТЬ</span></div>
+      <button class="ibtn" onclick="reloadPrev()">↺</button>
+      <button class="ibtn" onclick="openTab()">⛶</button>
+    </div>
+    <div class="empty" id="empty">
+      <div class="eico">🚀</div>
+      <div class="etxt">Напиши HTML и нажми<br><b>▶ ЗАПУСТИТЬ</b> или <b>Ctrl+Enter</b></div>
+    </div>
+    <iframe id="pf"></iframe>
+  </div>
+</div>
+
+<div class="bottom">
+  <span>DENISIA PAGES</span><span>|</span>
+  <span>Стр:<b id="bL">1</b> Кол:<b id="bC">1</b></span><span>|</span>
+  <span id="bSt">✏ Редактирование</span>
+</div>
+
+<!-- OVERLAY -->
+<div class="ov" id="ov">
+
+  <!-- DL MODAL -->
+  <div class="dlm" id="dlModal" style="display:none">
+    <div class="dmt">⬇ СКАЧАТЬ</div>
+    <button class="dr" onclick="dlHTML()"><span class="dem">🌐</span><span><span class="dt2">HTML файл</span><span class="ds2">Весь сайт — index.html</span></span></button>
+    <button class="dr" onclick="dlF('css')"><span class="dem">🎨</span><span><span class="dt2">CSS файл</span><span class="ds2">style.css</span></span></button>
+    <button class="dr" onclick="dlF('js')"><span class="dem">⚡</span><span><span class="dt2">JS файл</span><span class="ds2">script.js</span></span></button>
+    <button class="cbtn" style="border-color:#003344;color:#005577;margin-top:4px;" onclick="closeOv()">✕ ЗАКРЫТЬ</button>
+  </div>
+
+  <!-- APK MODAL -->
+  <div class="apkm" id="apkModal" style="display:none">
+    <div class="apkt">📱 СОБРАТЬ APK</div>
+    <div class="apks">ТВОЙ КОД → НАСТОЯЩИЙ ANDROID APK ФАЙЛ</div>
+
+    <!-- RESULT (hidden until done) -->
+    <div class="result-box" id="resultBox">
+      <div class="rb-title">🎉 APK ГОТОВ!</div>
+      <div class="rb-sub">Твой APK собран и готов к скачиванию.<br>Установи его на Android — это настоящее приложение!</div>
+      <button class="dl-apk-btn" id="dlApkBtn" onclick="downloadAPK()">⬇ СКАЧАТЬ APK ФАЙЛ</button>
+    </div>
+
+    <!-- NAME -->
+    <span class="flbl">НАЗВАНИЕ ПРИЛОЖЕНИЯ:</span>
+    <input class="finp" id="appName" type="text" value="Моё приложение" maxlength="30">
+
+    <!-- ICON -->
+    <span class="flbl">ИКОНКА ПРИЛОЖЕНИЯ (нажми чтобы выбрать из галереи):</span>
+    <div class="icon-wrap">
+      <div class="icon-box" id="iconBox" onclick="document.getElementById('iconFile').click()">🚀</div>
+      <div class="icon-side">
+        <button class="ipbtn" onclick="document.getElementById('iconFile').click()">📁 Из галереи</button>
+        <button class="ipbtn" onclick="toggleEmoji()">😀 Эмодзи</button>
+        <button class="ipbtn" onclick="resetIcon()">↩ Сброс</button>
+      </div>
+      <input type="file" id="iconFile" accept="image/*" style="display:none" onchange="loadIcon(event)">
+    </div>
+
+    <div class="egrid" id="egrid" style="display:none">
+      🚀🔥⚡🎮💎🌟🎯🛸🤖👾🎵🎨📱💻🌍🏆🦁🐲👑❄️🌊⚔️🎃💀
+      .trim().split('').filter(c=>c.trim()).forEach... <!-- rendered by JS below -->
+    </div>
+    <div id="emojiGrid" style="display:none"></div>
+
+    <!-- PROGRESS -->
+    <div class="prog-area" id="progArea">
+      <div class="prog-title">⚙️ СБОРКА APK...</div>
+      <div class="prog-steps">
+        <div class="pstep" id="ps1"><span class="pico">⬜</span> Подготовка кода</div>
+        <div class="pstep" id="ps2"><span class="pico">⬜</span> Генерация иконок</div>
+        <div class="pstep" id="ps3"><span class="pico">⬜</span> Создание ZIP архива</div>
+        <div class="pstep" id="ps4"><span class="pico">⬜</span> Отправка на сервер html2app.dev</div>
+        <div class="pstep" id="ps5"><span class="pico">⬜</span> Компиляция APK на сервере</div>
+        <div class="pstep" id="ps6"><span class="pico">⬜</span> Скачивание APK</div>
+      </div>
+      <div class="pbar-wrap"><div class="pbar" id="pbar"></div></div>
+    </div>
+
+    <button class="gobtn" id="goBtn" onclick="buildAPK()">▶▶ СОБРАТЬ APK — 1 КНОПКА</button>
+    <button class="cbtn" onclick="closeOv()">✕ ЗАКРЫТЬ</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+const code={html:'',css:'',js:''};
+let activeTab='html', iconDataUrl=null, selectedEmoji='🚀', builtApkBlob=null;
+
+const EMOJIS=['🚀','🔥','⚡','🎮','💎','🌟','🎯','🛸','🤖','👾','🎵','🎨','📱','💻','🌍','🏆','🦁','🐲','👑','❄️','🌊','⚔️','🎃','💀'];
+
+// Build emoji grid
+const eg=document.getElementById('emojiGrid');
+EMOJIS.forEach(em=>{
+  const b=document.createElement('button');
+  b.className='ebtn'; b.textContent=em;
+  b.onclick=()=>setEmoji(em);
+  eg.appendChild(b);
+});
+eg.style.cssText='display:none;grid-template-columns:repeat(8,1fr);gap:3px;background:#080200;border:1px solid #331100;border-radius:8px;padding:7px;margin-bottom:12px;';
+document.getElementById('emojiGrid').replaceWith(eg);
+
+// Remove old broken egrid
+document.getElementById('egrid').remove();
+
+// Default code
+code.html=`<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мой сайт</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#000;color:#00d4ff;font-family:'Courier New',monospace;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;}
+    h1{font-size:2.6rem;animation:glow 2s ease-in-out infinite alternate;margin-bottom:12px;}
+    @keyframes glow{from{text-shadow:0 0 20px #00d4ff;}to{text-shadow:0 0 50px #00d4ff,0 0 80px #00d4ff;}}
+    p{color:#005577;font-size:1rem;margin-bottom:20px;}
+    button{padding:11px 28px;border:2px solid #00d4ff;background:#000;color:#00d4ff;font-family:'Courier New',monospace;font-size:14px;font-weight:700;cursor:pointer;border-radius:6px;letter-spacing:2px;transition:all .2s;box-shadow:0 0 12px rgba(0,212,255,.3);}
+    button:hover{background:#00d4ff;color:#000;box-shadow:0 0 26px #00d4ff;transform:scale(1.05);}
+  </style>
+</head>
+<body>
+  <div>
+    <h1>DENISIA PAGES</h1>
+    <p>Твой сайт работает!</p>
+    <button onclick="this.textContent='РАБОТАЕТ! 🔥'">НАЖМИ МЕНЯ</button>
+  </div>
+</body>
+</html>`;
+code.css=`/* Дополнительный CSS */\n`;
+code.js=`// Дополнительный JS\nconsole.log('Denisia Pages!');\n`;
+
+const ed=document.getElementById('ed');
+const lnums=document.getElementById('lnums');
+ed.value=code.html; updateLines(); setTimeout(runCode,300);
+
+function switchTab(t){
+  code[activeTab]=ed.value; activeTab=t; ed.value=code[t];
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('t-'+t).classList.add('active');
+  updateLines(); ed.focus();
+}
+function updateLines(){
+  const n=ed.value.split('\n').length; let s='';
+  for(let i=1;i<=n;i++) s+=i+'\n';
+  lnums.textContent=s;
+}
+ed.addEventListener('scroll',()=>{lnums.scrollTop=ed.scrollTop;});
+ed.addEventListener('input',()=>{code[activeTab]=ed.value;updateLines();});
+ed.addEventListener('keydown',e=>{
+  if(e.key==='Tab'){e.preventDefault();const s=ed.selectionStart;ed.value=ed.value.slice(0,s)+'  '+ed.value.slice(ed.selectionEnd);ed.selectionStart=ed.selectionEnd=s+2;updateLines();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();dlHTML();}
+});
+ed.addEventListener('keyup',cur); ed.addEventListener('click',cur);
+function cur(){const lines=ed.value.slice(0,ed.selectionStart).split('\n');document.getElementById('bL').textContent=lines.length;document.getElementById('bC').textContent=lines[lines.length-1].length+1;}
+
+function clearCode(){if(confirm('Очистить "'+activeTab.toUpperCase()+'"?')){ed.value='';code[activeTab]='';updateLines();toast('🗑 Очищено');}}
+
+function buildHTML(){
+  let h=code.html;
+  if(code.css.trim()) h=h.replace('</head>','<style>\n'+code.css+'\n</style>\n</head>');
+  if(code.js.trim()) h=h.replace('</body>','<scr'+'ipt>\n'+code.js+'\n</scr'+'ipt>\n</body>');
+  return h;
+}
+function runCode(){
+  code[activeTab]=ed.value;
+  setTimeout(()=>{
+    const f=document.getElementById('pf');
+    f.srcdoc=buildHTML(); f.style.display='block';
+    document.getElementById('empty').style.display='none';
+    document.getElementById('ubox').classList.add('live');
+    document.getElementById('utxt').textContent='denisia.pages/preview — LIVE';
+    document.getElementById('bSt').textContent='✅ Запущен';
+    toast('✅ Сайт запущен!');
+  },80);
+}
+function reloadPrev(){if(document.getElementById('pf').style.display!=='none') runCode();}
+function openTab(){code[activeTab]=ed.value;const w=window.open('','_blank');w.document.open();w.document.write(buildHTML());w.document.close();}
+
+// MODALS
+const ov=document.getElementById('ov');
+function openDL(){document.getElementById('dlModal').style.display='block';document.getElementById('apkModal').style.display='none';ov.classList.add('open');}
+function openAPK(){document.getElementById('dlModal').style.display='none';document.getElementById('apkModal').style.display='block';ov.classList.add('open');}
+function closeOv(){ov.classList.remove('open');}
+ov.addEventListener('click',e=>{if(e.target===ov) closeOv();});
+
+function dl(c,n,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:m}));a.download=n;document.body.appendChild(a);a.click();document.body.removeChild(a);}
+function dlHTML(){closeOv();code[activeTab]=ed.value;dl(buildHTML(),'index.html','text/html');toast('📥 HTML скачан!');}
+function dlF(t){closeOv();const m={css:[code.css,'style.css','text/css'],js:[code.js,'script.js','text/javascript']};dl(m[t][0],m[t][1],m[t][2]);toast('📥 '+m[t][1]+' скачан!');}
+
+// ICON
+function loadIcon(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{iconDataUrl=ev.target.result;const b=document.getElementById('iconBox');b.innerHTML='<img src="'+iconDataUrl+'">';toast('🖼 Иконка загружена!');};
+  reader.readAsDataURL(file);
+}
+function toggleEmoji(){const g=document.getElementById('emojiGrid');g.style.display=g.style.display==='none'?'grid':'none';}
+function setEmoji(em){selectedEmoji=em;iconDataUrl=null;document.getElementById('iconBox').textContent=em;document.querySelectorAll('.ebtn').forEach(b=>b.classList.toggle('sel',b.textContent===em));toast('✅ '+em);}
+function resetIcon(){iconDataUrl=null;selectedEmoji='🚀';document.getElementById('iconBox').textContent='🚀';document.querySelectorAll('.ebtn').forEach(b=>b.classList.remove('sel'));}
+
+// MAKE ICON
+function makeIcon(size){
+  return new Promise(res=>{
+    const cv=document.createElement('canvas'); cv.width=cv.height=size;
+    const ctx=cv.getContext('2d');
+    if(iconDataUrl){
+      const img=new Image();
+      img.onload=()=>{
+        const r=size*0.18; ctx.beginPath();
+        ctx.moveTo(r,0);ctx.lineTo(size-r,0);ctx.quadraticCurveTo(size,0,size,r);
+        ctx.lineTo(size,size-r);ctx.quadraticCurveTo(size,size,size-r,size);
+        ctx.lineTo(r,size);ctx.quadraticCurveTo(0,size,0,size-r);
+        ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();ctx.clip();
+        ctx.drawImage(img,0,0,size,size);
+        res(cv.toDataURL('image/png').split(',')[1]);
+      };
+      img.src=iconDataUrl;
+    } else {
+      ctx.fillStyle='#000'; ctx.fillRect(0,0,size,size);
+      const g=ctx.createLinearGradient(0,0,size,size);
+      g.addColorStop(0,'#001a22'); g.addColorStop(1,'#000');
+      ctx.fillStyle=g; ctx.fillRect(0,0,size,size);
+      ctx.strokeStyle='#00d4ff'; ctx.lineWidth=size*0.03;
+      const r=size*0.12; ctx.beginPath();
+      ctx.moveTo(r,size*0.03);ctx.lineTo(size-r,size*0.03);ctx.quadraticCurveTo(size*0.97,size*0.03,size*0.97,r);
+      ctx.lineTo(size*0.97,size-r);ctx.quadraticCurveTo(size*0.97,size*0.97,size-r,size*0.97);
+      ctx.lineTo(r,size*0.97);ctx.quadraticCurveTo(size*0.03,size*0.97,size*0.03,size-r);
+      ctx.lineTo(size*0.03,r);ctx.quadraticCurveTo(size*0.03,size*0.03,r,size*0.03);
+      ctx.closePath(); ctx.stroke();
+      ctx.font=size*0.52+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(selectedEmoji,size/2,size/2+size*0.03);
+      res(cv.toDataURL('image/png').split(',')[1]);
+    }
+  });
+}
+
+// STEP UI
+function step(n, state, txt){
+  const el=document.getElementById('ps'+n);
+  const icons={wait:'⬜',active:'🔄',ok:'✅',fail:'❌'};
+  el.className='pstep '+(state==='active'?'active':state==='ok'?'ok':state==='fail'?'fail':'');
+  el.innerHTML='<span class="pico">'+icons[state]+'</span> '+txt;
+}
+function pct(n){ document.getElementById('pbar').style.width=n+'%'; }
+
+// ── BUILD APK ──
+async function buildAPK(){
+  code[activeTab]=ed.value;
+  const name=document.getElementById('appName').value.trim()||'Моё приложение';
+  const btn=document.getElementById('goBtn');
+  const prog=document.getElementById('progArea');
+  const result=document.getElementById('resultBox');
+
+  btn.disabled=true;
+  prog.classList.add('show');
+  result.classList.remove('show');
+  builtApkBlob=null;
+
+  try {
+    // STEP 1
+    step(1,'active','Подготовка кода...'); pct(5);
+    await delay(300);
+    const html=buildHTML();
+    step(1,'ok','Код готов'); pct(15);
+
+    // STEP 2
+    step(2,'active','Генерация иконок...'); pct(20);
+    const [ico192,ico512]=await Promise.all([makeIcon(192),makeIcon(512)]);
+    step(2,'ok','Иконки готовы'); pct(30);
+
+    // STEP 3
+    step(3,'active','Создание ZIP архива...'); pct(35);
+
+    const manifest={
+      name:name, short_name:name.slice(0,12),
+      start_url:'./index.html', display:'standalone',
+      background_color:'#000000', theme_color:'#00d4ff',
+      icons:[{src:'icon-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:'icon-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}]
+    };
+    const sw=`const C='v1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html'])).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+
+    let finalHtml=html;
+    if(!finalHtml.includes('manifest.json')) finalHtml=finalHtml.replace('</head>','<link rel="manifest" href="manifest.json">\n</head>');
+    if(!finalHtml.includes('serviceWorker')) finalHtml=finalHtml.replace('</body>','<scr'+'ipt>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");<\/scr'+'ipt>\n</body>');
+
+    const zip=new JSZip();
+    zip.file('index.html',finalHtml);
+    zip.file('manifest.json',JSON.stringify(manifest,null,2));
+    zip.file('sw.js',sw);
+    zip.file('icon-192.png',ico192,{base64:true});
+    zip.file('icon-512.png',ico512,{base64:true});
+
+    const zipBlob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    step(3,'ok','ZIP архив создан'); pct(50);
+
+    // STEP 4 — Send to html2app.dev
+    step(4,'active','Отправка на сервер html2app.dev...'); pct(55);
+
+    const formData=new FormData();
+    formData.append('file', zipBlob, 'app.zip');
+    formData.append('appName', name);
+    formData.append('packageId','com.denisia.'+name.toLowerCase().replace(/[^a-z0-9]/g,''));
+
+    // Try html2app.dev API (Capacitor service)
+    let apkBlob=null;
+    let serverError='';
+
+    try {
+      const resp=await fetch('https://html2app.dev/api/v1/build',{
+        method:'POST',
+        body:formData,
+        signal:AbortSignal.timeout(120000)
+      });
+
+      if(resp.ok){
+        const ct=resp.headers.get('content-type')||'';
+        if(ct.includes('application/vnd.android') || ct.includes('octet-stream') || ct.includes('application/zip')){
+          apkBlob=await resp.blob();
+        } else {
+          const txt=await resp.text();
+          // Maybe JSON with download URL
+          try {
+            const j=JSON.parse(txt);
+            if(j.downloadUrl||j.apkUrl||j.url){
+              const url=j.downloadUrl||j.apkUrl||j.url;
+              const r2=await fetch(url);
+              apkBlob=await r2.blob();
+            } else {
+              serverError=txt.slice(0,200);
+            }
+          } catch {
+            serverError=txt.slice(0,200);
+          }
+        }
+      } else {
+        serverError='HTTP '+resp.status;
+      }
+    } catch(e){
+      serverError=e.message;
+    }
+
+    step(4,'ok','Отправлено на сервер'); pct(70);
+
+    // STEP 5
+    step(5,'active','Компиляция APK...'); pct(75);
+    await delay(800);
+
+    if(apkBlob && apkBlob.size > 1000){
+      step(5,'ok','APK скомпилирован!'); pct(90);
+      step(6,'active','Скачивание...'); pct(95);
+      await delay(300);
+      builtApkBlob=apkBlob;
+      step(6,'ok','APK готов к скачиванию!'); pct(100);
+
+      // Show result
+      result.classList.add('show');
+      btn.textContent='🔄 СОБРАТЬ ЕЩЁ РАЗ';
+      btn.disabled=false;
+      toast('🎉 APK собран! Нажми скачать!');
+
+    } else {
+      // Server unavailable — fallback: save ZIP + open html2app
+      step(4,'fail','Сервер недоступен: '+serverError); 
+      step(5,'fail','Пробуем резервный способ...');
+      pct(80);
+      await delay(500);
+
+      // Save ZIP for manual upload
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(zipBlob);
+      a.download=name.replace(/\s+/g,'_')+'_app.zip';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+      step(5,'fail','Сервер временно недоступен'); 
+      step(6,'active','Открываем альтернативный сервер...'); pct(90);
+      await delay(600);
+
+      // Open html2app.dev manually
+      window.open('https://html2app.dev/apps','_blank');
+      step(6,'ok','ZIP скачан! Загрузи на html2app.dev'); pct(100);
+
+      toast('⚠️ ZIP скачан! Загрузи на html2app.dev для получения APK', true);
+      btn.textContent='▶▶ СОБРАТЬ APK — 1 КНОПКА';
+      btn.disabled=false;
+    }
+
+  } catch(err){
+    step(6,'fail','Ошибка: '+err.message);
+    toast('Ошибка: '+err.message, true);
+    btn.textContent='▶▶ СОБРАТЬ APK — 1 КНОПКА';
+    btn.disabled=false;
+  }
+}
+
+function downloadAPK(){
+  if(!builtApkBlob){ toast('APK не готов',true); return; }
+  const name=(document.getElementById('appName').value||'app').replace(/\s+/g,'_');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(builtApkBlob);
+  a.download=name+'.apk';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  toast('📱 APK скачан! Установи на Android!');
+}
+
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// RESIZER
+const resizer=document.getElementById('resizer');
+const edSide=document.getElementById('edSide');
+const mainEl=document.querySelector('.main');
+let drag=false;
+resizer.addEventListener('mousedown',()=>{drag=true;document.body.style.cursor='col-resize';document.body.style.userSelect='none';});
+document.addEventListener('mousemove',e=>{if(!drag) return;const r=mainEl.getBoundingClientRect();const p=(e.clientX-r.left)/r.width*100;if(p>15&&p<85) edSide.style.width=p+'%';});
+document.addEventListener('mouseup',()=>{drag=false;document.body.style.cursor='';document.body.style.userSelect='';});
+
+function toast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(err?' err':'');
+  setTimeout(()=>t.className='toast',4000);
+}
+</script>
+</body>
+</html>
