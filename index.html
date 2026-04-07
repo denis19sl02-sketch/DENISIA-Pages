@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DENISIA CLOUD: DEPLOYER</title>
+    <style>
+        body { background: #000; color: #00f0ff; font-family: 'Courier New', monospace; text-align: center; padding: 50px; }
+        textarea { width: 80%; height: 300px; background: #050505; color: #00f0ff; border: 1px solid #00f0ff; padding: 15px; box-shadow: 0 0 15px #00f0ff; }
+        button { background: #00f0ff; color: #000; border: none; padding: 20px 40px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        button:hover { background: #fff; box-shadow: 0 0 30px #00f0ff; }
+        #result { margin-top: 30px; display: none; padding: 20px; border: 1px dashed #00f0ff; }
+        input { background: transparent; border: none; color: #fff; width: 100%; text-align: center; font-size: 1.2rem; outline: none; }
+    </style>
+</head>
+<body>
+    <h1>DENISIA CLOUD: HOSTING GENERATOR</h1>
+    <textarea id="codeBody" placeholder="ВСТАВЬ HTML КОД ЛАУНЧЕРА..."></textarea><br>
+    <button onclick="createSite()">DEPLOY TO DENISIA CLOUD</button>
+
+    <div id="result">
+        <p>САЙТ ЗАПУЩЕН! ТВОЙ УНИКАЛЬНЫЙ URL:</p>
+        <input type="text" id="finalUrl" readonly onclick="this.select()">
+        <p style="font-size: 10px; color: #555;">(Кликни, чтобы скопировать)</p>
+    </div>
+
+    <script>
+        const MASTER_KEY = "$2a$10$piBi/4TcAsEwd6rVS6q7/OeIoKMgU9X6ygr6GEpmvK/M5dDBQ/I8y";
+
+        async function createSite() {
+            const code = document.getElementById('codeBody').value;
+            if(!code) return alert("ПУСТОЙ КОД!");
+
+            // 1. Создаем НОВЫЙ БИН в твоем JSONbin
+            try {
+                const res = await fetch("https://api.jsonbin.io/v3/b", {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": MASTER_KEY,
+                        "X-Bin-Private": "false" // Чтобы загрузчик мог его прочитать
+                    },
+                    body: JSON.stringify({ html: code })
+                });
+
+                const data = await res.json();
+                const binId = data.metadata.id;
+
+                // 2. Генерируем короткую ссылку через специальный прокси-загрузчик
+                // ВАЖНО: Мы используем HTML-рендерер, чтобы открывался САЙТ
+                const siteUrl = `https://denis19sl02-sketch.github.io/DENISIA-Launcher/?id=${binId}`;
+
+                document.getElementById('finalUrl').value = siteUrl;
+                document.getElementById('result').style.display = "block";
+                
+            } catch (err) {
+                alert("ОШИБКА СЕРВЕРА: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
